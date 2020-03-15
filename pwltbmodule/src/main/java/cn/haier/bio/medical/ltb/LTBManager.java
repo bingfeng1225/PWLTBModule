@@ -1,5 +1,7 @@
 package cn.haier.bio.medical.ltb;
 
+import java.lang.ref.WeakReference;
+
 import cn.qd.peiwen.pwtools.EmptyUtils;
 
 /***
@@ -24,10 +26,10 @@ public class LTBManager {
 
     }
 
-    public void init(ILTBListener listener) {
+    public void init() {
         if(EmptyUtils.isEmpty(this.serialPort)){
             this.serialPort = new LTBSerialPort();
-            this.serialPort.init(listener);
+            this.serialPort.init();
         }
     }
 
@@ -47,6 +49,12 @@ public class LTBManager {
         if(EmptyUtils.isNotEmpty(this.serialPort)){
             this.serialPort.disable();
             this.serialPort = null;
+        }
+    }
+
+    public void changedListener(ILTBListener listener) {
+        if(EmptyUtils.isNotEmpty(this.serialPort)){
+            this.serialPort.changedListener(listener);
         }
     }
 }

@@ -118,16 +118,6 @@ public class LTBTools {
         return entity;
     }
 
-    public static int indexOf(ByteBuf haystack, byte needle) {
-        //遍历haystack的每一个字节
-        for (int i = haystack.readerIndex(); i < haystack.writerIndex(); i++) {
-            if(needle == haystack.getByte(i)){
-                return i;
-            }
-        }
-        return -1;
-    }
-
     public static int indexOf(ByteBuf haystack, byte[] needle) {
         //遍历haystack的每一个字节
         for (int i = haystack.readerIndex(); i < haystack.writerIndex(); i++) {

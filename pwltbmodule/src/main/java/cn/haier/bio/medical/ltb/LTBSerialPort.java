@@ -33,11 +33,10 @@ public class LTBSerialPort implements PWSerialPortListener {
     public LTBSerialPort() {
     }
 
-    public void init(ILTBListener listener) {
+    public void init() {
         this.createHandler();
         this.createHelper();
         this.createBuffer();
-        this.listener = new WeakReference<>(listener);
     }
 
     public void enable() {
@@ -59,6 +58,10 @@ public class LTBSerialPort implements PWSerialPortListener {
         this.destoryHandler();
         this.destoryHelper();
         this.destoryBuffer();
+    }
+
+    public void changedListener(ILTBListener listener) {
+        this.listener = new WeakReference<>(listener);
     }
 
     private boolean isInitialized() {
