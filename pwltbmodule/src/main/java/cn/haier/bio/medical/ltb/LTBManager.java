@@ -52,9 +52,9 @@ public class LTBManager {
         }
     }
 
-    public void changedListener(ILTBListener listener) {
+    public void changeListener(ILTBListener listener) {
         if(EmptyUtils.isNotEmpty(this.serialPort)){
-            this.serialPort.changedListener(listener);
+            this.serialPort.changeListener(listener);
         }
     }
 }

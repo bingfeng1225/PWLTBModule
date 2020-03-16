@@ -60,7 +60,7 @@ public class LTBSerialPort implements PWSerialPortListener {
         this.destoryBuffer();
     }
 
-    public void changedListener(ILTBListener listener) {
+    public void changeListener(ILTBListener listener) {
         this.listener = new WeakReference<>(listener);
     }
 
