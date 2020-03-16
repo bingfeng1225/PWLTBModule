@@ -47,7 +47,7 @@ public class LTBManager {
 
     public void release() {
         if(EmptyUtils.isNotEmpty(this.serialPort)){
-            this.serialPort.disable();
+            this.serialPort.release();
             this.serialPort = null;
         }
     }

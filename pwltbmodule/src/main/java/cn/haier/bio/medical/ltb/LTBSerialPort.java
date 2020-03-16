@@ -130,6 +130,18 @@ public class LTBSerialPort implements PWSerialPortListener {
         }
     }
 
+    private void switchReadModel(){
+        if(EmptyUtils.isNotEmpty(this.listener)){
+            this.listener.get().onLTBSwitchReadModel();
+        }
+    }
+
+    private void switchWriteModel(){
+        if(EmptyUtils.isNotEmpty(this.listener)){
+            this.listener.get().onLTBSwitchWriteModel();
+        }
+    }
+
     private boolean ignorePackage() {
         boolean result = false;
         if (this.system == 0x00) {
@@ -168,7 +180,7 @@ public class LTBSerialPort implements PWSerialPortListener {
         this.ready = false;
         this.buffer.clear();
         this.system = 0x00;
-        LTBTools.switchReadModel();
+        this.switchReadModel();
         if (EmptyUtils.isNotEmpty(this.listener)) {
             this.listener.get().onLTBConnected();
         }
@@ -233,7 +245,7 @@ public class LTBSerialPort implements PWSerialPortListener {
             }
 
             PWLogger.d("LTB Recv:" + ByteUtils.bytes2HexString(data, true, ", "));
-            LTBTools.switchWriteModel();
+            this.switchWriteModel();
             Message msg = Message.obtain();
             msg.what = command;
             if (command == 0x10) {
@@ -259,7 +271,7 @@ public class LTBSerialPort implements PWSerialPortListener {
                     byte[] data = (byte[]) msg.obj;
                     byte[] response = LTBTools.packageStateResponse(data);
                     LTBSerialPort.this.write(response);
-                    LTBTools.switchReadModel();
+                    LTBSerialPort.this.switchReadModel();
                     LTBDataEntity entity = LTBTools.parseLTB760AGEntity(data);
                     if (EmptyUtils.isNotEmpty(LTBSerialPort.this.listener)) {
                         LTBSerialPort.this.listener.get().onLTBStateChanged(entity);
@@ -274,7 +286,7 @@ public class LTBSerialPort implements PWSerialPortListener {
                     if (EmptyUtils.isNotEmpty(response)) {
                         LTBSerialPort.this.write(response);
                     }
-                    LTBTools.switchReadModel();
+                    LTBSerialPort.this.switchReadModel();
                     break;
                 }
                 default:

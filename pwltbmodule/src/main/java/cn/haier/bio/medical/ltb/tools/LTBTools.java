@@ -39,22 +39,6 @@ public class LTBTools {
         return false;
     }
 
-    public static void switchReadModel() {
-        if (!"magton".equals(Build.MODEL)) {
-            PWSerialPort.writeFile("/sys/class/gpio/gpio24/value", "1");
-        } else {
-            PWSerialPort.writeFile("/sys/class/misc/sunxi-acc/acc/sochip_acc", "0");
-        }
-    }
-
-    public static void switchWriteModel() {
-        if (!"magton".equals(Build.MODEL)) {
-            PWSerialPort.writeFile("/sys/class/gpio/gpio24/value", "0");
-        } else {
-            PWSerialPort.writeFile("/sys/class/misc/sunxi-acc/acc/sochip_acc", "1");
-        }
-    }
-
     public static byte[] packageStateResponse(byte[] data) {
         byte[] buffer = new byte[8];
         System.arraycopy(data, 0, buffer, 0, buffer.length - 2);
