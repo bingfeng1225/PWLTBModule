@@ -12,6 +12,4 @@ public interface ILTBListener {
     byte[] packageLTBResponse(int type);
     boolean onLTBSystemChanged(int type);
     void onLTBStateChanged(LTBDataEntity entity);
-
-
 }
