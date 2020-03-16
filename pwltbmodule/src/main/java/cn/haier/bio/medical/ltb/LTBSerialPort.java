@@ -226,9 +226,12 @@ public class LTBSerialPort implements PWSerialPortListener {
             if (this.system == 0x00) {
                 this.system = system;
                 if (EmptyUtils.isNotEmpty(this.listener)) {
-                    this.listener.get().onLTBSystemChanged(this.system);
+                    if(this.listener.get().onLTBSystemChanged(this.system)){
+                        return;
+                    }
                 }
             }
+
             PWLogger.d("LTB Recv:" + ByteUtils.bytes2HexString(data, true, ", "));
             LTBTools.switchWriteModel();
             Message msg = Message.obtain();

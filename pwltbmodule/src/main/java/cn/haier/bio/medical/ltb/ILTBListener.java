@@ -7,7 +7,7 @@ public interface ILTBListener {
     void onLTBReady();
     void onLTBConnected();
     void onLTBException();
-    void onLTBSystemChanged(int type);
     byte[] packageLTBResponse(int type);
+    boolean onLTBSystemChanged(int type);
     void onLTBStateChanged(LTBDataEntity entity);
 }
