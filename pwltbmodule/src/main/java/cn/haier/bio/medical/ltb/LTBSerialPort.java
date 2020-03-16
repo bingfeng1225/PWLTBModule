@@ -33,9 +33,9 @@ public class LTBSerialPort implements PWSerialPortListener {
     public LTBSerialPort() {
     }
 
-    public void init() {
+    public void init(String path) {
         this.createHandler();
-        this.createHelper();
+        this.createHelper(path);
         this.createBuffer();
     }
 
@@ -77,15 +77,11 @@ public class LTBSerialPort implements PWSerialPortListener {
         return true;
     }
 
-    private void createHelper() {
+    private void createHelper(String path) {
         if (EmptyUtils.isEmpty(this.helper)) {
             this.helper = new PWSerialPortHelper("LTBSerialPort");
             this.helper.setTimeout(2);
-            if ("magton".equals(Build.MODEL)) {
-                this.helper.setPath("/dev/ttyS2");
-            } else {
-                this.helper.setPath("/dev/ttyS4");
-            }
+            this.helper.setPath(path);
             this.helper.setBaudrate(9600);
             this.helper.init(this);
         }

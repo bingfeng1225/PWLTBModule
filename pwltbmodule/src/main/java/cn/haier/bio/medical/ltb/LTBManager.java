@@ -26,10 +26,10 @@ public class LTBManager {
 
     }
 
-    public void init() {
+    public void init(String path) {
         if(EmptyUtils.isEmpty(this.serialPort)){
             this.serialPort = new LTBSerialPort();
-            this.serialPort.init();
+            this.serialPort.init(path);
         }
     }
 
