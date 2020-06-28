@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 
 import cn.haier.bio.medical.ltb.entity.LTBDataEntity;
-import cn.qd.peiwen.pwlogger.PWLogger;
 import cn.qd.peiwen.serialport.PWSerialPortHelper;
 import cn.qd.peiwen.serialport.PWSerialPortListener;
+import cn.qd.peiwen.serialport.PWSerialPortState;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
@@ -67,10 +67,7 @@ class LTBSerialPort implements PWSerialPortListener {
         if (this.helper == null) {
             return false;
         }
-        if (this.buffer == null) {
-            return false;
-        }
-        return true;
+        return this.buffer != null;
     }
 
     private void createHelper(String path) {
@@ -120,20 +117,22 @@ class LTBSerialPort implements PWSerialPortListener {
     }
 
     private void write(byte[] data) {
-        PWLogger.d("LTB Send:" + LTBTools.bytes2HexString(data, true, ", "));
-        if (this.isInitialized() && this.enabled) {
+        if (!this.isInitialized() || !this.enabled) {
             this.helper.writeAndFlush(data);
+        }
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onLTBPrint("LTBSerialPort Send:" + LTBTools.bytes2HexString(data, true, ", "));
         }
     }
 
-    private void switchReadModel(){
-        if(null != this.listener && null != this.listener.get()){
+    private void switchReadModel() {
+        if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onLTBSwitchReadModel();
         }
     }
 
-    private void switchWriteModel(){
-        if(null != this.listener && null != this.listener.get()){
+    private void switchWriteModel() {
+        if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onLTBSwitchWriteModel();
         }
     }
@@ -149,7 +148,9 @@ class LTBSerialPort implements PWSerialPortListener {
                     byte[] data = new byte[index];
                     this.buffer.readBytes(data, 0, data.length);
                     this.buffer.discardReadBytes();
-                    PWLogger.d("指令丢弃:" + LTBTools.bytes2HexString(data, true, ", "));
+                    if (null != this.listener && null != this.listener.get()) {
+                        this.listener.get().onLTBPrint("LTBSerialPort 指令丢弃:" + LTBTools.bytes2HexString(data, true, ", "));
+                    }
                     break;
                 }
             }
@@ -161,7 +162,9 @@ class LTBSerialPort implements PWSerialPortListener {
                 byte[] data = new byte[index];
                 this.buffer.readBytes(data, 0, data.length);
                 this.buffer.discardReadBytes();
-                PWLogger.d("指令丢弃:" + LTBTools.bytes2HexString(data, true, ", "));
+                if (null != this.listener && null != this.listener.get()) {
+                    this.listener.get().onLTBPrint("LTBSerialPort 指令丢弃:" + LTBTools.bytes2HexString(data, true, ", "));
+                }
             }
         }
         return result;
@@ -177,19 +180,39 @@ class LTBSerialPort implements PWSerialPortListener {
         this.buffer.clear();
         this.system = 0x00;
         this.switchReadModel();
-        if(null != this.listener && null != this.listener.get()){
+        if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onLTBConnected();
         }
     }
 
     @Override
-    public void onException(PWSerialPortHelper helper) {
+    public void onReadThreadReleased(PWSerialPortHelper helper) {
+        if (!this.isInitialized() || !helper.equals(this.helper)) {
+            return;
+        }
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onLTBPrint("LTBSerialPort read thread released");
+        }
+    }
+
+    @Override
+    public void onException(PWSerialPortHelper helper, Throwable throwable) {
         if (!this.isInitialized() || !helper.equals(this.helper)) {
             return;
         }
         this.ready = false;
-        if(null != this.listener && null != this.listener.get()){
-            this.listener.get().onLTBException();
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onLTBException(throwable);
+        }
+    }
+
+    @Override
+    public void onStateChanged(PWSerialPortHelper helper, PWSerialPortState state) {
+        if (!this.isInitialized() || !helper.equals(this.helper)) {
+            return;
+        }
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onLTBPrint("LTBSerialPort state changed: " + state.name());
         }
     }
 
@@ -227,20 +250,21 @@ class LTBSerialPort implements PWSerialPortListener {
             this.buffer.discardReadBytes();
             if (!this.ready) {
                 this.ready = true;
-                if(null != this.listener && null != this.listener.get()){
+                if (null != this.listener && null != this.listener.get()) {
                     this.listener.get().onLTBReady();
                 }
             }
             if (this.system == 0x00) {
                 this.system = system;
-                if(null != this.listener && null != this.listener.get()){
-                    if(this.listener.get().onLTBSystemChanged(this.system)){
+                if (null != this.listener && null != this.listener.get()) {
+                    if (this.listener.get().onLTBSystemChanged(this.system)) {
                         return;
                     }
                 }
             }
-
-            PWLogger.d("LTB Recv:" + LTBTools.bytes2HexString(data, true, ", "));
+            if (null != this.listener && null != this.listener.get()) {
+                this.listener.get().onLTBPrint("LTBSerialPort Recv:" + LTBTools.bytes2HexString(data, true, ", "));
+            }
             this.switchWriteModel();
             Message msg = Message.obtain();
             msg.what = command;
@@ -269,14 +293,14 @@ class LTBSerialPort implements PWSerialPortListener {
                     LTBSerialPort.this.write(response);
                     LTBSerialPort.this.switchReadModel();
                     LTBDataEntity entity = LTBTools.parseLTB760AGEntity(data);
-                    if(null != LTBSerialPort.this.listener && null != LTBSerialPort.this.listener.get()){
+                    if (null != LTBSerialPort.this.listener && null != LTBSerialPort.this.listener.get()) {
                         LTBSerialPort.this.listener.get().onLTBStateChanged(entity);
                     }
                     break;
                 }
                 case 0x03: {
                     byte[] response = null;
-                    if(null != LTBSerialPort.this.listener && null != LTBSerialPort.this.listener.get()){
+                    if (null != LTBSerialPort.this.listener && null != LTBSerialPort.this.listener.get()) {
                         response = LTBSerialPort.this.listener.get().packageLTBResponse(msg.arg1);
                     }
                     if (null != response) {
