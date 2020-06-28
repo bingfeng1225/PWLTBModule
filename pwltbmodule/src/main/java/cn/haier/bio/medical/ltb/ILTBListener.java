@@ -1,6 +1,5 @@
 package cn.haier.bio.medical.ltb;
 
-
 import cn.haier.bio.medical.ltb.entity.LTBDataEntity;
 
 public interface ILTBListener {
