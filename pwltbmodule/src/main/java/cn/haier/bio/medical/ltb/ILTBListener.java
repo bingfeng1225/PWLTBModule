@@ -8,8 +8,8 @@ public interface ILTBListener {
     void onLTBSwitchWriteModel();
     void onLTBSwitchReadModel();
     void onLTBPrint(String message);
+    void onLTBSystemChanged(int type);
     byte[] packageLTBResponse(int type);
-    boolean onLTBSystemChanged(int type);
     void onLTBException(Throwable throwable);
-    void onLTBStateChanged(LTBDataEntity entity);
+    void onLTBDataChanged(LTBDataEntity entity);
 }

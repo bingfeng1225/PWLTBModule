@@ -118,8 +118,9 @@ class LTBSerialPort implements PWSerialPortListener {
 
     private void write(byte[] data) {
         if (!this.isInitialized() || !this.enabled) {
-            this.helper.writeAndFlush(data);
+            return;
         }
+        this.helper.writeAndFlush(data);
         if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onLTBPrint("LTBSerialPort Send:" + LTBTools.bytes2HexString(data, true, ", "));
         }
@@ -254,12 +255,10 @@ class LTBSerialPort implements PWSerialPortListener {
                     this.listener.get().onLTBReady();
                 }
             }
-            if (this.system == 0x00) {
+            if (this.system != system) {
                 this.system = system;
                 if (null != this.listener && null != this.listener.get()) {
-                    if (this.listener.get().onLTBSystemChanged(this.system)) {
-                        return;
-                    }
+                    this.listener.get().onLTBSystemChanged(this.system);
                 }
             }
             if (null != this.listener && null != this.listener.get()) {
@@ -294,7 +293,7 @@ class LTBSerialPort implements PWSerialPortListener {
                     LTBSerialPort.this.switchReadModel();
                     LTBDataEntity entity = LTBTools.parseLTB760AGEntity(data);
                     if (null != LTBSerialPort.this.listener && null != LTBSerialPort.this.listener.get()) {
-                        LTBSerialPort.this.listener.get().onLTBStateChanged(entity);
+                        LTBSerialPort.this.listener.get().onLTBDataChanged(entity);
                     }
                     break;
                 }
@@ -303,7 +302,7 @@ class LTBSerialPort implements PWSerialPortListener {
                     if (null != LTBSerialPort.this.listener && null != LTBSerialPort.this.listener.get()) {
                         response = LTBSerialPort.this.listener.get().packageLTBResponse(msg.arg1);
                     }
-                    if (null != response) {
+                    if (null != response && response.length > 0) {
                         LTBSerialPort.this.write(response);
                     }
                     LTBSerialPort.this.switchReadModel();
