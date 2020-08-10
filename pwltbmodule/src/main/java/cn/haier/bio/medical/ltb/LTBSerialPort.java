@@ -8,7 +8,6 @@ import android.os.Message;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
-import cn.haier.bio.medical.ltb.entity.LTBDataEntity;
 import cn.qd.peiwen.serialport.PWSerialPortHelper;
 import cn.qd.peiwen.serialport.PWSerialPortListener;
 import cn.qd.peiwen.serialport.PWSerialPortState;
@@ -291,9 +290,8 @@ class LTBSerialPort implements PWSerialPortListener {
                     byte[] response = LTBTools.packageStateResponse(data);
                     LTBSerialPort.this.write(response);
                     LTBSerialPort.this.switchReadModel();
-                    LTBDataEntity entity = LTBTools.parseLTB760AGEntity(data);
                     if (null != LTBSerialPort.this.listener && null != LTBSerialPort.this.listener.get()) {
-                        LTBSerialPort.this.listener.get().onLTBDataChanged(entity);
+                        LTBSerialPort.this.listener.get().onLTBDataChanged(data);
                     }
                     break;
                 }

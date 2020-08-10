@@ -8,7 +8,6 @@ import android.view.View;
 
 import cn.haier.bio.medical.ltb.ILTBListener;
 import cn.haier.bio.medical.ltb.LTBManager;
-import cn.haier.bio.medical.ltb.entity.LTBDataEntity;
 import cn.qd.peiwen.logger.PWLogger;
 import cn.qd.peiwen.serialport.PWSerialPort;
 
@@ -99,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements ILTBListener {
     }
 
     @Override
-    public void onLTBDataChanged(LTBDataEntity entity) {
+    public void onLTBDataChanged(byte[] entity) {
         PWLogger.debug("LTBSerialPort DataChanged");
     }
 }
