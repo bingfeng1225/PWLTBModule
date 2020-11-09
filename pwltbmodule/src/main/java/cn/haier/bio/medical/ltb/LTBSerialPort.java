@@ -119,9 +119,11 @@ class LTBSerialPort implements PWSerialPortListener {
         if (!this.isInitialized() || !this.enabled) {
             return;
         }
+        long time = System.currentTimeMillis();
         this.helper.writeAndFlush(data);
         if (null != this.listener && null != this.listener.get()) {
-            this.listener.get().onLTBPrint("LTBSerialPort Send:" + LTBTools.bytes2HexString(data, true, ", "));
+            long offset = System.currentTimeMillis() - time;
+            this.listener.get().onLTBPrint("LTBSerialPort Send(" + offset + "):" + LTBTools.bytes2HexString(data, true, ", "));
         }
     }
 
