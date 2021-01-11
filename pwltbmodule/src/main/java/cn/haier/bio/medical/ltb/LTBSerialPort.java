@@ -213,13 +213,15 @@ class LTBSerialPort implements PWSerialPortListener {
             this.listener.get().onLTBPrint("LTBSerialPort Recv:" + LTBTools.bytes2HexString(data, true, ", "));
         }
 
-        byte[] remind = new byte[this.buffer.readableBytes()];
-        this.buffer.markReaderIndex();
-        this.buffer.readBytes(remind, 0, remind.length);
-        this.buffer.resetReaderIndex();
+        if(this.buffer.readableBytes() > 0) {
+            byte[] remind = new byte[this.buffer.readableBytes()];
+            this.buffer.markReaderIndex();
+            this.buffer.readBytes(remind, 0, remind.length);
+            this.buffer.resetReaderIndex();
 
-        if (null != this.listener && null != this.listener.get()) {
-            this.listener.get().onLTBPrint("LTBSerialPort 剩余字节数:" + LTBTools.bytes2HexString(remind, true, ", "));
+            if (null != this.listener && null != this.listener.get()) {
+                this.listener.get().onLTBPrint("LTBSerialPort Remind:" + LTBTools.bytes2HexString(remind, true, ", "));
+            }
         }
 
         this.switchWriteModel();
