@@ -212,6 +212,16 @@ class LTBSerialPort implements PWSerialPortListener {
         if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onLTBPrint("LTBSerialPort Recv:" + LTBTools.bytes2HexString(data, true, ", "));
         }
+
+        byte[] remind = new byte[this.buffer.readableBytes()];
+        this.buffer.markReaderIndex();
+        this.buffer.readBytes(remind, 0, remind.length);
+        this.buffer.resetReaderIndex();
+
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onLTBPrint("LTBSerialPort 剩余字节数:" + LTBTools.bytes2HexString(remind, true, ", "));
+        }
+
         this.switchWriteModel();
         Message msg = Message.obtain();
         msg.what = command;
@@ -221,6 +231,9 @@ class LTBSerialPort implements PWSerialPortListener {
             msg.arg1 = model & 0xFF;
         }
         this.handler.sendMessage(msg);
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onLTBPrint("LTB760AGHandler Send:" + command);
+        }
         return true;
     }
 
@@ -288,6 +301,9 @@ class LTBSerialPort implements PWSerialPortListener {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            if (null != listener && null != listener.get()) {
+                listener.get().onLTBPrint("LTB760AGHandler process:" + msg.what);
+            }
             switch (msg.what) {
                 case 0x10: {
                     byte[] data = (byte[]) msg.obj;
