@@ -290,6 +290,9 @@ class LTBSerialPort implements PWSerialPortListener {
         if (!this.isInitialized() || !helper.equals(this.helper)) {
             return false;
         }
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onLTBPrint("LTBSerialPort Received: " + LTBTools.bytes2HexString(buffer, true, ", "));
+        }
         this.buffer.writeBytes(buffer, 0, length);
         return this.processBytesBuffer();
     }
