@@ -213,7 +213,7 @@ class LTBSerialPort implements PWSerialPortListener {
             this.listener.get().onLTBPrint("LTBSerialPort Recv:" + LTBTools.bytes2HexString(data, true, ", "));
         }
 
-        if(this.buffer.readableBytes() > 0) {
+        if (this.buffer.readableBytes() > 0) {
             byte[] remind = new byte[this.buffer.readableBytes()];
             this.buffer.markReaderIndex();
             this.buffer.readBytes(remind, 0, remind.length);
@@ -294,7 +294,13 @@ class LTBSerialPort implements PWSerialPortListener {
             this.listener.get().onLTBPrint("LTBSerialPort Received: " + LTBTools.bytes2HexString(buffer, true, ", "));
         }
         this.buffer.writeBytes(buffer, 0, length);
-        return this.processBytesBuffer();
+        long time = System.currentTimeMillis();
+        boolean result = this.processBytesBuffer();
+        if (null != this.listener && null != this.listener.get()) {
+            long offset = System.currentTimeMillis() - time;
+            this.listener.get().onLTBPrint("LTBSerialPort process:" + offset);
+        }
+        return result;
     }
 
 
