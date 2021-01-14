@@ -241,7 +241,7 @@ class LTBSerialPort implements PWSerialPortListener {
         if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onLTBPrint("LTB760AGHandler Send:" + msg.arg2);
         }
-        this.handler.sendMessageDelayed(msg,5);
+        this.handler.sendMessageDelayed(msg,2);
         return true;
     }
 
