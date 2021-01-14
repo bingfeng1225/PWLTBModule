@@ -119,6 +119,7 @@ class LTBSerialPort implements PWSerialPortListener {
         if (!this.isInitialized() || !this.enabled) {
             return;
         }
+        this.listener.get().onLTBPrint("LTBSerialPort Send start");
         long time = System.currentTimeMillis();
         this.helper.writeAndFlush(data);
         if (null != this.listener && null != this.listener.get()) {
@@ -127,7 +128,10 @@ class LTBSerialPort implements PWSerialPortListener {
         }
     }
 
+    boolean firstRead = false;
+
     private void switchReadModel() {
+        firstRead = true;
         if (null != this.listener && null != this.listener.get()) {
             this.listener.get().onLTBSwitchReadModel();
         }
@@ -232,13 +236,16 @@ class LTBSerialPort implements PWSerialPortListener {
         } else {
             msg.arg1 = model & 0xFF;
         }
-        this.handler.sendMessage(msg);
+        index++;
+        msg.arg2 = index;
         if (null != this.listener && null != this.listener.get()) {
-            this.listener.get().onLTBPrint("LTB760AGHandler Send:" + command);
+            this.listener.get().onLTBPrint("LTB760AGHandler Send:" + msg.arg2);
         }
+        this.handler.sendMessageDelayed(msg,5);
         return true;
     }
 
+    private int index = -1;
 
     @Override
     public void onConnected(PWSerialPortHelper helper) {
@@ -290,17 +297,12 @@ class LTBSerialPort implements PWSerialPortListener {
         if (!this.isInitialized() || !helper.equals(this.helper)) {
             return false;
         }
-        if (null != this.listener && null != this.listener.get()) {
-            this.listener.get().onLTBPrint("LTBSerialPort Received: " + LTBTools.bytes2HexString(buffer, true, ", "));
+        if (firstRead && null != this.listener && null != this.listener.get()) {
+            firstRead = false;
+            this.listener.get().onLTBPrint("LTBSerialPort first read: " + LTBTools.bytes2HexString(buffer, 0, length, true, ", "));
         }
         this.buffer.writeBytes(buffer, 0, length);
-        long time = System.currentTimeMillis();
-        boolean result = this.processBytesBuffer();
-        if (null != this.listener && null != this.listener.get()) {
-            long offset = System.currentTimeMillis() - time;
-            this.listener.get().onLTBPrint("LTBSerialPort process:" + offset);
-        }
-        return result;
+        return this.processBytesBuffer();
     }
 
 
@@ -313,7 +315,7 @@ class LTBSerialPort implements PWSerialPortListener {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if (null != listener && null != listener.get()) {
-                listener.get().onLTBPrint("LTB760AGHandler process:" + msg.what);
+                listener.get().onLTBPrint("LTB760AGHandler process:" + msg.arg2);
             }
             switch (msg.what) {
                 case 0x10: {
@@ -327,12 +329,12 @@ class LTBSerialPort implements PWSerialPortListener {
                     break;
                 }
                 case 0x03: {
-                    byte[] response = null;
+                    byte[] buffer = null;
                     if (null != LTBSerialPort.this.listener && null != LTBSerialPort.this.listener.get()) {
-                        response = LTBSerialPort.this.listener.get().packageLTBResponse(msg.arg1);
+                        buffer = LTBSerialPort.this.listener.get().packageLTBResponse(msg.arg1);
                     }
-                    if (null != response && response.length > 0) {
-                        LTBSerialPort.this.write(response);
+                    if (null != buffer && buffer.length > 0) {
+                        LTBSerialPort.this.write(LTBTools.packageParameterResponse(system, buffer));
                     }
                     LTBSerialPort.this.switchReadModel();
                     break;

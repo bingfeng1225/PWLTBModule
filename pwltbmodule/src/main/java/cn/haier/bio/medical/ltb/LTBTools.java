@@ -4,6 +4,7 @@ package cn.haier.bio.medical.ltb;
 import java.util.Arrays;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 class LTBTools {
 
@@ -41,6 +42,26 @@ class LTBTools {
         buffer[buffer.length - 2] = crc[0];
         buffer[buffer.length - 1] = crc[1];
         return buffer;
+    }
+
+
+    public static byte[] packageParameterResponse(byte system, byte[] bytes) {
+        ByteBuf buffer = Unpooled.buffer(4);
+        buffer.writeByte(system);
+        buffer.writeByte(0x03);
+        buffer.writeByte(0x3C);
+        buffer.writeBytes(bytes);
+
+        byte[] data = new byte[buffer.readableBytes()];
+        buffer.markReaderIndex();
+        buffer.readBytes(data, 0, data.length);
+        buffer.resetReaderIndex();
+        byte[] crc = computeCRC16CodeLE(data, 0, data.length);
+        buffer.writeBytes(crc);
+        data = new byte[buffer.readableBytes()];
+        buffer.readBytes(data, 0, data.length);
+        buffer.release();
+        return data;
     }
 
     public static byte[] short2BytesLE(short value) {
@@ -162,4 +183,5 @@ class LTBTools {
         }
         return -1;
     }
+
 }

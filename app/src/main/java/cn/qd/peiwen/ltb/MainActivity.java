@@ -1,11 +1,10 @@
 package cn.qd.peiwen.ltb;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.appcompat.app.AppCompatActivity;
 import cn.haier.bio.medical.ltb.ILTBListener;
 import cn.haier.bio.medical.ltb.LTBManager;
 import cn.qd.peiwen.logger.PWLogger;
@@ -17,6 +16,13 @@ public class MainActivity extends AppCompatActivity implements ILTBListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        String path = "/dev/ttyS4";
+        if ("magton".equals(Build.MODEL)) {
+            path = "/dev/ttyS2";
+        }
+        LTBManager.getInstance().init(path);
+        LTBManager.getInstance().changeListener(this);
+        LTBManager.getInstance().enable();
     }
 
     @Override
@@ -28,12 +34,7 @@ public class MainActivity extends AppCompatActivity implements ILTBListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.button1:
-                String path = "/dev/ttyS4";
-                if ("magton".equals(Build.MODEL)) {
-                    path = "/dev/ttyS2";
-                }
-                LTBManager.getInstance().init(path);
-                LTBManager.getInstance().changeListener(this);
+
                 break;
             case R.id.button2:
                 LTBManager.getInstance().enable();
@@ -81,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements ILTBListener {
     public void onLTBPrint(String message) {
         PWLogger.debug("" + message);
     }
+
     @Override
     public void onLTBSystemChanged(int type) {
         PWLogger.debug("LTBSerialPort SystemChanged: " + type);
@@ -88,7 +90,35 @@ public class MainActivity extends AppCompatActivity implements ILTBListener {
 
     @Override
     public byte[] packageLTBResponse(int type) {
-        return new byte[0];
+        byte[] buffer = null;
+        if (type == 0xA4) {
+            buffer = new byte[]{
+                    (byte)0x24, (byte)0xFA, (byte)0x88, (byte)0xFA, (byte)0xC0, (byte)0xF9,
+                    (byte)0x01, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x1E, (byte)0x00,
+                    (byte)0x05, (byte)0x00, (byte)0x05, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0xEC, (byte)0xFA,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
+            };
+        } else {
+            buffer = new byte[]{
+                    (byte)0x1E, (byte)0x00, (byte)0x05, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x23, (byte)0x00, (byte)0x5A, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+                    (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
+            };
+        }
+        return buffer;
     }
 
 
