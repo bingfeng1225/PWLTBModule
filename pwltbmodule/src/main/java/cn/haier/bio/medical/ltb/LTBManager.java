@@ -48,6 +48,12 @@ public class LTBManager {
         }
     }
 
+    public void changeFsync(boolean fsync) {
+        if(null != this.serialPort){
+            this.serialPort.changeFsync(fsync);
+        }
+    }
+
     public void changeListener(ILTBListener listener) {
         if(null != this.serialPort){
             this.serialPort.changeListener(listener);

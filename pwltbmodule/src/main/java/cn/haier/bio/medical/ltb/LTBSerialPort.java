@@ -21,6 +21,7 @@ class LTBSerialPort implements PWSerialPortListener {
     private PWSerialPortHelper helper;
 
     private byte system = 0x00;
+    private boolean fsync = true;
     private boolean ready = false;
     private boolean enabled = false;
     private WeakReference<ILTBListener> listener;
@@ -53,6 +54,10 @@ class LTBSerialPort implements PWSerialPortListener {
         this.destoryHandler();
         this.destoryHelper();
         this.destoryBuffer();
+    }
+
+    public void changeFsync(boolean fsync) {
+        this.fsync = fsync;
     }
 
     public void changeListener(ILTBListener listener) {
@@ -120,7 +125,11 @@ class LTBSerialPort implements PWSerialPortListener {
             return;
         }
         long time = System.currentTimeMillis();
-        this.helper.writeAndFlush(data);
+        if(!fsync) {
+            this.helper.write(data);
+        } else {
+            this.helper.writeAndFlush(data);
+        }
         if (null != this.listener && null != this.listener.get()) {
             long offset = System.currentTimeMillis() - time;
             this.listener.get().onLTBPrint("LTBSerialPort Send(" + offset + "):" + LTBTools.bytes2HexString(data, true, ", "));
@@ -128,13 +137,13 @@ class LTBSerialPort implements PWSerialPortListener {
     }
 
     private void switchReadModel() {
-        if (null != this.listener && null != this.listener.get()) {
+        if (this.fsync && null != this.listener && null != this.listener.get()) {
             this.listener.get().onLTBSwitchReadModel();
         }
     }
 
     private void switchWriteModel() {
-        if (null != this.listener && null != this.listener.get()) {
+        if (this.fsync && null != this.listener && null != this.listener.get()) {
             this.listener.get().onLTBSwitchWriteModel();
         }
     }
